@@ -18,14 +18,14 @@ pub struct _Opaque;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct RowItem {
-    pub typename: Buffer,
+    pub type_name: Buffer,
     pub value: Buffer,
 }
 
 impl RowItem {
     pub fn empty() -> Self {
         let buff = Buffer::null();
-        Self{typename: buff, value: buff}
+        Self{type_name: buff, value: buff}
     }
 }
 
@@ -60,11 +60,11 @@ pub unsafe extern "C" fn row_close(row: *mut _Row) {
 #[no_mangle]
 pub unsafe extern "C" fn row_item(row: *mut _Row, i: usize) -> RowItem {
     let row = OpaquePtr::<postgres::rows::Row>::from_opaque(row);
-    let typename = row.columns()[i].type_().name();
+    let type_name = row.columns()[i].type_().name();
 
     match row.get_bytes(i) {
         Some(data) => RowItem{
-            typename: Buffer::from_str(typename),
+            type_name: Buffer::from_str(type_name),
             value: Buffer::from_bytes(data),
         },
         None => RowItem::empty(),

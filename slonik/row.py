@@ -23,7 +23,7 @@ class _Row(rust.RustObject):
 
     def item(self, i):
         item = self._methodcall(lib.row_item, i)
-        typename = rust.buff_to_bytes(item.typename)
+        typename = rust.buff_to_bytes(item.type_name)
         value = rust.buff_to_bytes(item.value)
         return typename, value
 

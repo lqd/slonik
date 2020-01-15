@@ -20,7 +20,7 @@ pub struct _QueryResult;
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 pub struct QueryParam {
-    pub typename: Buffer,
+    pub type_name: Buffer,
     pub value: Buffer,
 }
 
@@ -43,12 +43,12 @@ macro_rules! get_typed_param {
 
 impl QueryParam {
     pub unsafe fn typed_param(&self) -> Box<postgres::types::ToSql> {
-        match self.typename.to_str() {
+        match self.type_name.to_str() {
             "text" => get_typed_param!("text", self.value),
             "int4" => get_typed_param!("int4", self.value),
             "float8" => get_typed_param!("float8", self.value),
             _ => {
-                println!("unknown type: {:?}", self.typename.to_str());
+                println!("unknown type: {:?}", self.type_name.to_str());
                 get_typed_param!("", self.value)
             },
         }

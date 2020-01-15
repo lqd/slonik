@@ -8,7 +8,7 @@ name = "postgres_ffi"
 crate-type = ["cdylib"]
 
 [dependencies]
-postgres = "*"
+postgres = "0.15"
 
 [build-dependencies]
-cbindgen = "*"
+cbindgen = "0.12"
