@@ -5,11 +5,14 @@ use std::str;
 
 use buffer::Buffer;
 use connection::{Connection, _Connection};
-use opaque::OpaquePtr;
+use opaque::{OpaquePtr, OpaqueTarget};
 use result::FFIResult;
 use row::{_Rows, _RowsIterator};
 
 pub struct _Query;
+impl<'a> OpaqueTarget<'a> for _Query {
+    type Target = Query<'a>;
+}
 
 pub struct _QueryResult;
 
@@ -109,6 +112,9 @@ pub struct QueryResult {
     pub rows: *mut _Rows,
     pub iter: *mut _RowsIterator,
 }
+impl OpaqueTarget<'_> for _QueryResult {
+    type Target = QueryResult;
+}
 
 impl QueryResult {
     pub fn from_rows(rows: postgres::rows::Rows) -> Self {
@@ -119,8 +125,8 @@ impl QueryResult {
 }
 impl Drop for QueryResult {
     fn drop(&mut self) {
-        let rows = OpaquePtr::<postgres::rows::Rows>::from_opaque(self.rows);
-        let iter = OpaquePtr::<postgres::rows::Iter>::from_opaque(self.iter);
+        let rows = OpaquePtr::from_opaque(self.rows);
+        let iter = OpaquePtr::from_opaque(self.iter);
         unsafe {
             iter.free();
             rows.free();
@@ -134,7 +140,7 @@ pub unsafe extern "C" fn new_query(
     query: *const c_char,
     len: usize,
 ) -> *mut _Query {
-    let conn = OpaquePtr::<Connection>::from_opaque(conn);
+    let conn = OpaquePtr::from_opaque(conn);
     let query_str = str::from_utf8_unchecked(slice::from_raw_parts(query as *const _, len));
     let q = Query {
         conn: &conn,
@@ -152,7 +158,7 @@ pub unsafe extern "C" fn query_param(query: *mut _Query, param: QueryParam) {
 
 #[no_mangle]
 pub unsafe extern "C" fn query_exec(query: *mut _Query) -> FFIResult<u8> {
-    let query = OpaquePtr::<Query>::from_opaque(query);
+    let query = OpaquePtr::from_opaque(query);
     let result = query.execute();
     query.free();
     FFIResult::from_result(result)
@@ -160,7 +166,7 @@ pub unsafe extern "C" fn query_exec(query: *mut _Query) -> FFIResult<u8> {
 
 #[no_mangle]
 pub unsafe extern "C" fn query_exec_result(query: *mut _Query) -> FFIResult<_QueryResult> {
-    let query = OpaquePtr::<Query>::from_opaque(query);
+    let query = OpaquePtr::from_opaque(query);
     let result = query.execute_with_result();
     query.free();
     FFIResult::from_result(result)
@@ -168,6 +174,6 @@ pub unsafe extern "C" fn query_exec_result(query: *mut _Query) -> FFIResult<_Que
 
 #[no_mangle]
 pub unsafe extern "C" fn result_close(result: *mut _QueryResult) {
-    let result = OpaquePtr::<QueryResult>::from_opaque(result);
+    let result = OpaquePtr::from_opaque(result);
     result.free();
 }

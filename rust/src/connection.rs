@@ -2,11 +2,14 @@ use std::os::raw::c_char;
 use std::slice;
 use std::str;
 
-use opaque::OpaquePtr;
+use opaque::{OpaquePtr, OpaqueTarget};
 pub use postgres::{Connection, TlsMode};
 use result::FFIResult;
 
 pub struct _Connection;
+impl OpaqueTarget<'_> for _Connection {
+    type Target = Connection;
+}
 
 pub struct _Query;
 
@@ -18,6 +21,6 @@ pub unsafe extern "C" fn connect(dsn: *const c_char, len: usize) -> FFIResult<_C
 
 #[no_mangle]
 pub unsafe extern "C" fn close(conn: *mut _Connection) {
-    let conn = OpaquePtr::<Connection>::from_opaque(conn);
+    let conn = OpaquePtr::from_opaque(conn);
     conn.free();
 }

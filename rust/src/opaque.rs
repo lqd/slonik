@@ -4,6 +4,12 @@ pub struct OpaquePtr<T> {
     ptr: *mut T,
 }
 
+/// Marker trait to allow the opaque wrapper ZSTs to know which `T` they
+/// represent when being unwrapped in an `OpaquePtr<T>`.
+pub trait OpaqueTarget<'a> {
+    type Target;
+}
+
 impl<T> OpaquePtr<T> {
     pub fn from_ptr(ptr: *mut T) -> Self {
         Self { ptr }
@@ -29,7 +35,12 @@ impl<T> OpaquePtr<T> {
         unsafe { &mut *self.ptr }
     }
 
-    pub fn from_opaque<O>(opaque: *mut O) -> Self {
+    // Only allow the single type declared as the wrapped "opaque pointee"
+    // type to be converted to its opaque wrapper
+    pub fn from_opaque<'a, O>(opaque: *mut O) -> Self
+    where
+        O: OpaqueTarget<'a, Target = T>,
+    {
         Self::from_ptr(opaque as *mut T)
     }
 
