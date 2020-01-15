@@ -1,6 +1,6 @@
-use buffer::*;
-use opaque::*;
-use query::*;
+use buffer::Buffer;
+use opaque::OpaquePtr;
+use query::{QueryResult, _QueryResult};
 
 pub struct _Rows;
 pub struct _RowsIterator;

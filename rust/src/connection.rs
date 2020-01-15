@@ -2,9 +2,9 @@ use std::os::raw::c_char;
 use std::slice;
 use std::str;
 
-use opaque::*;
+use opaque::OpaquePtr;
 pub use postgres::{Connection, TlsMode};
-use result::*;
+use result::FFIResult;
 
 pub struct _Connection;
 

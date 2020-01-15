@@ -1,5 +1,5 @@
-use buffer::*;
-use opaque::*;
+use buffer::Buffer;
+use opaque::OpaquePtr;
 
 pub struct Error {
     pub code: u8,

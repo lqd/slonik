@@ -3,11 +3,11 @@ use std::os::raw::c_char;
 use std::slice;
 use std::str;
 
-use buffer::*;
-use connection::*;
-use opaque::*;
-use result::*;
-use row::*;
+use buffer::Buffer;
+use connection::{Connection, _Connection};
+use opaque::OpaquePtr;
+use result::FFIResult;
+use row::{_Rows, _RowsIterator};
 
 pub struct _Query;
 

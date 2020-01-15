@@ -1,3 +1,4 @@
+use std::ptr;
 use std::slice;
 use std::str;
 
@@ -12,7 +13,7 @@ impl Buffer {
     pub fn null() -> Self {
         Self {
             size: 0,
-            bytes: std::ptr::null(),
+            bytes: ptr::null(),
         }
     }
     pub fn from_bytes(data: &[u8]) -> Self {

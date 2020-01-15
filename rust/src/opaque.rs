@@ -1,3 +1,5 @@
+use std::ops::{Deref, DerefMut};
+
 pub struct OpaquePtr<T> {
     ptr: *mut T,
 }
@@ -30,14 +32,14 @@ impl<T> OpaquePtr<T> {
     }
 }
 
-impl<T> std::ops::Deref for OpaquePtr<T> {
+impl<T> Deref for OpaquePtr<T> {
     type Target = T;
     fn deref(&self) -> &T {
         self.as_ref()
     }
 }
 
-impl<T> std::ops::DerefMut for OpaquePtr<T> {
+impl<T> DerefMut for OpaquePtr<T> {
     fn deref_mut(&mut self) -> &mut T {
         self.as_ref()
     }
