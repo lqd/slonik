@@ -11,8 +11,6 @@ impl OpaqueTarget<'_> for _Connection {
     type Target = Connection;
 }
 
-pub struct _Query;
-
 #[no_mangle]
 pub unsafe extern "C" fn connect(dsn: *const c_char, len: usize) -> FFIResult<_Connection> {
     let dsn_str = str::from_utf8_unchecked(slice::from_raw_parts(dsn as *const _, len));

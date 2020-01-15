@@ -18,8 +18,6 @@ impl<'a> OpaqueTarget<'a> for _Row {
     type Target = rows::Row<'a>;
 }
 
-pub struct _Opaque;
-
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct RowItem {
