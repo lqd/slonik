@@ -63,7 +63,7 @@ def call(func, *args):
     result = func(*args)
     if isresult(result):
         if result.status:
-            error = ffi.cast('_Error*', result.data)
+            error = ffi.cast('Error*', result.data)
             try:
                 error_msg = buff_to_bytes(lib.error_msg(error)).decode()
                 raise SlonikException(error_msg)

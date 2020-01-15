@@ -1,22 +1,6 @@
 use buffer::Buffer;
-use opaque::{OpaquePtr, OpaqueTarget};
-use postgres::rows;
-use query::_QueryResult;
-
-pub struct _Rows;
-impl OpaqueTarget<'_> for _Rows {
-    type Target = rows::Rows;
-}
-
-pub struct _RowsIterator;
-impl<'a> OpaqueTarget<'a> for _RowsIterator {
-    type Target = rows::Iter<'a>;
-}
-
-pub struct _Row;
-impl<'a> OpaqueTarget<'a> for _Row {
-    type Target = rows::Row<'a>;
-}
+use ffi;
+use opaque::OpaquePtr;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -36,7 +20,7 @@ impl RowItem {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn next_row(result: *mut _QueryResult) -> *const _Row {
+pub unsafe extern "C" fn next_row(result: *mut ffi::QueryResult) -> *const ffi::Row {
     let result = OpaquePtr::from_opaque(result);
     let mut iter = OpaquePtr::from_opaque(result.iter);
     match iter.next() {
@@ -46,19 +30,19 @@ pub unsafe extern "C" fn next_row(result: *mut _QueryResult) -> *const _Row {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn row_len(row: *mut _Row) -> usize {
+pub unsafe extern "C" fn row_len(row: *mut ffi::Row) -> usize {
     let row = OpaquePtr::from_opaque(row);
     row.len()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn row_close(row: *mut _Row) {
+pub unsafe extern "C" fn row_close(row: *mut ffi::Row) {
     let row = OpaquePtr::from_opaque(row);
     row.free();
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn row_item(row: *mut _Row, i: usize) -> RowItem {
+pub unsafe extern "C" fn row_item(row: *mut ffi::Row, i: usize) -> RowItem {
     let row = OpaquePtr::from_opaque(row);
     let type_name = row.columns()[i].type_().name();
 
