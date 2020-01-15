@@ -68,7 +68,7 @@ impl<T: ParamType + std::fmt::Debug> TypedQueryParam<T> {
     }
 }
 impl<T: ParamType + std::fmt::Debug> postgres::types::ToSql for TypedQueryParam<T> {
-    fn to_sql(&self, ty: &postgres::types::Type, out: &mut Vec<u8>) -> Result<postgres::types::IsNull, Box<std::error::Error + 'static + Send + Sync>> {
+    fn to_sql(&self, ty: &postgres::types::Type, out: &mut Vec<u8>) -> Result<postgres::types::IsNull, Box<std::error::Error + Send + Sync>> {
         for i in 0..self.value.size {
             out.push(unsafe { *self.value.bytes.offset(i as isize) });
         }
