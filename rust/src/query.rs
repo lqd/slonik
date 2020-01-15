@@ -1,3 +1,6 @@
+use postgres::types as pgtypes;
+use std::error::Error as StdError;
+use std::fmt;
 use std::marker::PhantomData;
 use std::os::raw::c_char;
 use std::slice;
@@ -32,7 +35,7 @@ macro_rules! get_typed_param {
 }
 
 impl QueryParam {
-    pub unsafe fn typed_param(&self) -> Box<dyn postgres::types::ToSql> {
+    pub unsafe fn typed_param(&self) -> Box<dyn pgtypes::ToSql> {
         match self.type_name.to_str() {
             "text" => get_typed_param!("text", self.value),
             "int4" => get_typed_param!("int4", self.value),
@@ -47,11 +50,11 @@ impl QueryParam {
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
-pub struct TypedQueryParam<T: ParamType + std::fmt::Debug> {
+pub struct TypedQueryParam<T: ParamType + fmt::Debug> {
     pub value: Buffer,
     _marker: PhantomData<T>,
 }
-impl<T: ParamType + std::fmt::Debug> TypedQueryParam<T> {
+impl<T: ParamType + fmt::Debug> TypedQueryParam<T> {
     pub fn new(value: Buffer) -> Self {
         Self {
             value,
@@ -59,19 +62,19 @@ impl<T: ParamType + std::fmt::Debug> TypedQueryParam<T> {
         }
     }
 }
-impl<T: ParamType + std::fmt::Debug> postgres::types::ToSql for TypedQueryParam<T> {
+impl<T: ParamType + fmt::Debug> pgtypes::ToSql for TypedQueryParam<T> {
     fn to_sql(
         &self,
-        _ty: &postgres::types::Type,
+        _ty: &pgtypes::Type,
         out: &mut Vec<u8>,
-    ) -> Result<postgres::types::IsNull, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<pgtypes::IsNull, Box<dyn StdError + Send + Sync>> {
         for i in 0..self.value.size {
             out.push(unsafe { *self.value.bytes.offset(i as isize) });
         }
-        Ok(postgres::types::IsNull::No)
+        Ok(pgtypes::IsNull::No)
     }
 
-    fn accepts(ty: &postgres::types::Type) -> bool {
+    fn accepts(ty: &pgtypes::Type) -> bool {
         ty.name() == T::NAME
     }
 
@@ -81,11 +84,11 @@ impl<T: ParamType + std::fmt::Debug> postgres::types::ToSql for TypedQueryParam<
 pub struct Query<'a> {
     pub conn: &'a Connection,
     pub query: String,
-    pub params: Vec<Box<dyn postgres::types::ToSql>>,
+    pub params: Vec<Box<dyn pgtypes::ToSql>>,
 }
 
 impl<'a> Query<'a> {
-    pub fn sql_params(&self) -> Vec<&dyn postgres::types::ToSql> {
+    pub fn sql_params(&self) -> Vec<&dyn pgtypes::ToSql> {
         self.params.iter().map(|p| p.as_ref()).collect()
     }
 
