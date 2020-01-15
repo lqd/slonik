@@ -43,8 +43,8 @@ impl QueryParam {
             "text" => get_typed_param!("text", self.value),
             "int4" => get_typed_param!("int4", self.value),
             "float8" => get_typed_param!("float8", self.value),
-            _ => {
-                println!("unknown type: {:?}", self.type_name.to_str());
+            type_name => {
+                println!("unknown type: {:?}", type_name);
                 get_typed_param!("", self.value)
             }
         }
