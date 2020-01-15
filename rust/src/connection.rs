@@ -1,5 +1,3 @@
-extern crate postgres;
-
 use std::os::raw::c_char;
 use std::slice;
 use std::str;
