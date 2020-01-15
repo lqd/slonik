@@ -5,13 +5,10 @@ use query::*;
 pub struct _Rows;
 pub struct _RowsIterator;
 
-#[no_mangle]
 pub struct _Row;
 
-#[no_mangle]
 pub struct _Opaque;
 
-#[no_mangle]
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct RowItem {

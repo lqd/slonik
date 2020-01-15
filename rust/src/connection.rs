@@ -8,10 +8,8 @@ use opaque::*;
 pub use postgres::{Connection, TlsMode};
 use result::*;
 
-#[no_mangle]
 pub struct _Connection;
 
-#[no_mangle]
 pub struct _Query;
 
 #[no_mangle]

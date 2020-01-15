@@ -1,7 +1,6 @@
 use error::*;
 use opaque::*;
 
-#[no_mangle]
 #[repr(C)]
 pub struct FFIResult<T> {
     status: u8,

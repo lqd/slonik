@@ -1,7 +1,6 @@
 use std::slice;
 use std::str;
 
-#[no_mangle]
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 pub struct Buffer {

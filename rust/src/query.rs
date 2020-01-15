@@ -9,13 +9,10 @@ use opaque::*;
 use result::*;
 use row::*;
 
-#[no_mangle]
 pub struct _Query;
 
-#[no_mangle]
 pub struct _QueryResult;
 
-#[no_mangle]
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 pub struct QueryParam {
@@ -52,7 +49,6 @@ impl QueryParam {
     }
 }
 
-#[no_mangle]
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 pub struct TypedQueryParam<T: ParamType + std::fmt::Debug> {

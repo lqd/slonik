@@ -6,7 +6,6 @@ pub struct Error {
     pub msg: String,
 }
 
-#[no_mangle]
 pub struct _Error;
 
 #[no_mangle]
