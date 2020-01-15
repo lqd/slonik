@@ -1,7 +1,6 @@
 use std::slice;
 use std::str;
 
-
 #[no_mangle]
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
@@ -12,10 +11,16 @@ pub struct Buffer {
 
 impl Buffer {
     pub fn null() -> Self {
-        Self{size: 0, bytes: std::ptr::null()}
+        Self {
+            size: 0,
+            bytes: std::ptr::null(),
+        }
     }
     pub fn from_bytes(data: &[u8]) -> Self {
-        Self{size: data.len(), bytes: data.as_ptr()}
+        Self {
+            size: data.len(),
+            bytes: data.as_ptr(),
+        }
     }
     pub fn from_str(data: &str) -> Self {
         Self::from_bytes(data.as_bytes())

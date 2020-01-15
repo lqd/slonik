@@ -2,19 +2,17 @@ use std::os::raw::c_char;
 use std::slice;
 use std::str;
 
-use opaque::*;
-use result::*;
 use buffer::*;
 use connection::*;
+use opaque::*;
+use result::*;
 use row::*;
-
 
 #[no_mangle]
 pub struct _Query;
 
 #[no_mangle]
 pub struct _QueryResult;
-
 
 #[no_mangle]
 #[repr(C)]
@@ -29,16 +27,14 @@ pub trait ParamType {
 }
 
 macro_rules! get_typed_param {
-    ($typename: expr, $value: expr) => {
-        {
-            #[derive(Copy, Clone, Debug)]
-            struct _ParamType {}
-            impl ParamType for _ParamType {
-                const NAME: &'static str = $typename;
-            }
-            Box::new(TypedQueryParam::<_ParamType>::new($value))
+    ($typename: expr, $value: expr) => {{
+        #[derive(Copy, Clone, Debug)]
+        struct _ParamType {}
+        impl ParamType for _ParamType {
+            const NAME: &'static str = $typename;
         }
-    }
+        Box::new(TypedQueryParam::<_ParamType>::new($value))
+    }};
 }
 
 impl QueryParam {
@@ -50,7 +46,7 @@ impl QueryParam {
             _ => {
                 println!("unknown type: {:?}", self.type_name.to_str());
                 get_typed_param!("", self.value)
-            },
+            }
         }
     }
 }
@@ -64,11 +60,18 @@ pub struct TypedQueryParam<T: ParamType + std::fmt::Debug> {
 }
 impl<T: ParamType + std::fmt::Debug> TypedQueryParam<T> {
     pub fn new(value: Buffer) -> Self {
-        Self{value, phantom: std::marker::PhantomData}
+        Self {
+            value,
+            phantom: std::marker::PhantomData,
+        }
     }
 }
 impl<T: ParamType + std::fmt::Debug> postgres::types::ToSql for TypedQueryParam<T> {
-    fn to_sql(&self, _ty: &postgres::types::Type, out: &mut Vec<u8>) -> Result<postgres::types::IsNull, Box<dyn std::error::Error + Send + Sync>> {
+    fn to_sql(
+        &self,
+        _ty: &postgres::types::Type,
+        out: &mut Vec<u8>,
+    ) -> Result<postgres::types::IsNull, Box<dyn std::error::Error + Send + Sync>> {
         for i in 0..self.value.size {
             out.push(unsafe { *self.value.bytes.offset(i as isize) });
         }
@@ -105,7 +108,6 @@ impl<'a> Query<'a> {
     }
 }
 
-
 pub struct QueryResult {
     pub rows: *mut _Rows,
     pub iter: *mut _RowsIterator,
@@ -115,11 +117,11 @@ impl QueryResult {
     pub fn from_rows(rows: postgres::rows::Rows) -> Self {
         let iter = OpaquePtr::new(rows.iter()).opaque();
         let rows = OpaquePtr::new(rows).opaque();
-        Self{rows, iter}
+        Self { rows, iter }
     }
 }
 impl Drop for QueryResult {
-    fn drop (&mut self) {
+    fn drop(&mut self) {
         let rows = OpaquePtr::<postgres::rows::Rows>::from_opaque(self.rows);
         let iter = OpaquePtr::<postgres::rows::Iter>::from_opaque(self.iter);
         unsafe {
@@ -129,22 +131,27 @@ impl Drop for QueryResult {
     }
 }
 
-
 #[no_mangle]
-pub unsafe extern "C" fn new_query(conn: *mut _Connection, query: *const c_char, len: usize) -> *mut _Query {
+pub unsafe extern "C" fn new_query(
+    conn: *mut _Connection,
+    query: *const c_char,
+    len: usize,
+) -> *mut _Query {
     let conn = OpaquePtr::<Connection>::from_opaque(conn);
     let query_str = str::from_utf8_unchecked(slice::from_raw_parts(query as *const _, len));
-    let q = Query { conn: &conn, query: query_str.to_string(), params: vec![] };
+    let q = Query {
+        conn: &conn,
+        query: query_str.to_string(),
+        params: vec![],
+    };
     OpaquePtr::new(q).opaque()
 }
-
 
 #[no_mangle]
 pub unsafe extern "C" fn query_param(query: *mut _Query, param: QueryParam) {
     let query = &mut *(query as *mut Query);
     query.params.push(param.typed_param());
 }
-
 
 #[no_mangle]
 pub unsafe extern "C" fn query_exec(query: *mut _Query) -> FFIResult<u8> {
@@ -154,7 +161,6 @@ pub unsafe extern "C" fn query_exec(query: *mut _Query) -> FFIResult<u8> {
     FFIResult::from_result(result)
 }
 
-
 #[no_mangle]
 pub unsafe extern "C" fn query_exec_result(query: *mut _Query) -> FFIResult<_QueryResult> {
     let query = OpaquePtr::<Query>::from_opaque(query);
@@ -162,7 +168,6 @@ pub unsafe extern "C" fn query_exec_result(query: *mut _Query) -> FFIResult<_Que
     query.free();
     FFIResult::from_result(result)
 }
-
 
 #[no_mangle]
 pub unsafe extern "C" fn result_close(result: *mut _QueryResult) {

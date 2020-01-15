@@ -1,5 +1,5 @@
 pub struct OpaquePtr<T> {
-    ptr: *mut T
+    ptr: *mut T,
 }
 impl<T> OpaquePtr<T> {
     pub fn from_ptr(ptr: *mut T) -> Self {

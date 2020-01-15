@@ -1,5 +1,5 @@
-use opaque::*;
 use buffer::*;
+use opaque::*;
 
 pub struct Error {
     pub code: u8,
@@ -8,7 +8,6 @@ pub struct Error {
 
 #[no_mangle]
 pub struct _Error;
-
 
 #[no_mangle]
 pub unsafe extern "C" fn error_msg(error: *mut _Error) -> Buffer {
