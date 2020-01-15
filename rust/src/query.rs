@@ -42,7 +42,7 @@ macro_rules! get_typed_param {
 }
 
 impl QueryParam {
-    pub unsafe fn typed_param(&self) -> Box<postgres::types::ToSql> {
+    pub unsafe fn typed_param(&self) -> Box<dyn postgres::types::ToSql> {
         match self.type_name.to_str() {
             "text" => get_typed_param!("text", self.value),
             "int4" => get_typed_param!("int4", self.value),
@@ -68,7 +68,7 @@ impl<T: ParamType + std::fmt::Debug> TypedQueryParam<T> {
     }
 }
 impl<T: ParamType + std::fmt::Debug> postgres::types::ToSql for TypedQueryParam<T> {
-    fn to_sql(&self, _ty: &postgres::types::Type, out: &mut Vec<u8>) -> Result<postgres::types::IsNull, Box<std::error::Error + Send + Sync>> {
+    fn to_sql(&self, _ty: &postgres::types::Type, out: &mut Vec<u8>) -> Result<postgres::types::IsNull, Box<dyn std::error::Error + Send + Sync>> {
         for i in 0..self.value.size {
             out.push(unsafe { *self.value.bytes.offset(i as isize) });
         }
@@ -85,11 +85,11 @@ impl<T: ParamType + std::fmt::Debug> postgres::types::ToSql for TypedQueryParam<
 pub struct Query<'a> {
     pub conn: &'a Connection,
     pub query: String,
-    pub params: Vec<Box<postgres::types::ToSql>>,
+    pub params: Vec<Box<dyn postgres::types::ToSql>>,
 }
 
 impl<'a> Query<'a> {
-    pub fn sql_params(&self) -> Vec<&postgres::types::ToSql> {
+    pub fn sql_params(&self) -> Vec<&dyn postgres::types::ToSql> {
         self.params.iter().map(|p| p.as_ref()).collect()
     }
 
