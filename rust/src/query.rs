@@ -1,3 +1,4 @@
+use std::marker::PhantomData;
 use std::os::raw::c_char;
 use std::slice;
 use std::str;
@@ -56,13 +57,13 @@ impl QueryParam {
 #[derive(Copy, Clone, Debug)]
 pub struct TypedQueryParam<T: ParamType + std::fmt::Debug> {
     pub value: Buffer,
-    phantom: std::marker::PhantomData<T>,
+    _marker: PhantomData<T>,
 }
 impl<T: ParamType + std::fmt::Debug> TypedQueryParam<T> {
     pub fn new(value: Buffer) -> Self {
         Self {
             value,
-            phantom: std::marker::PhantomData,
+            _marker: PhantomData,
         }
     }
 }
