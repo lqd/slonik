@@ -25,7 +25,7 @@ pub struct QueryParam {
 }
 
 pub trait ParamType {
-    const name: &'static str;
+    const NAME: &'static str;
 }
 
 macro_rules! get_typed_param {
@@ -34,7 +34,7 @@ macro_rules! get_typed_param {
             #[derive(Copy, Clone, Debug)]
             struct _ParamType {}
             impl ParamType for _ParamType {
-                const name: &'static str = $typename;
+                const NAME: &'static str = $typename;
             }
             Box::new(TypedQueryParam::<_ParamType>::new($value))
         }
@@ -76,7 +76,7 @@ impl<T: ParamType + std::fmt::Debug> postgres::types::ToSql for TypedQueryParam<
     }
 
     fn accepts(ty: &postgres::types::Type) -> bool {
-        ty.name() == T::name
+        ty.name() == T::NAME
     }
 
     postgres::to_sql_checked!();
