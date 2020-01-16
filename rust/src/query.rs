@@ -1,3 +1,4 @@
+use postgres::rows::Rows;
 use postgres::types as pgtypes;
 use std::error::Error as StdError;
 use std::fmt;
@@ -8,9 +9,10 @@ use std::str;
 
 use buffer::Buffer;
 use connection::Connection;
-use ffi;
+use ffi::{self, RowMajor2DArray};
 use opaque::OpaquePtr;
 use result::FFIResult;
+use row::RowItem;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
@@ -99,33 +101,87 @@ impl<'a> Query<'a> {
         self.conn.execute(&self.query, params.as_slice())
     }
 
-    pub fn execute_with_result(&self) -> Result<QueryResult, postgres::Error> {
+    pub fn execute_with_result<QR: QueryResult>(&self) -> Result<QR, postgres::Error> {
         let params = self.sql_params();
         let result = self.conn.query(&self.query, params.as_slice());
-        result.map(|rows| QueryResult::from_rows(rows))
+        result.map(|rows| QR::from_rows(rows))
     }
 }
 
-pub struct QueryResult {
-    pub rows: *mut ffi::Rows,
+pub trait QueryResult {
+    fn from_rows(rows: Rows) -> Self;
+}
+
+pub struct IteratedQueryResult {
+    rows: *mut ffi::Rows,
     pub iter: *mut ffi::RowsIterator,
 }
 
-impl QueryResult {
-    pub fn from_rows(rows: postgres::rows::Rows) -> Self {
+impl QueryResult for IteratedQueryResult {
+    fn from_rows(rows: Rows) -> Self {
         let iter = OpaquePtr::new(rows.iter()).opaque();
         let rows = OpaquePtr::new(rows).opaque();
         Self { rows, iter }
     }
 }
 
-impl Drop for QueryResult {
+impl Drop for IteratedQueryResult {
     fn drop(&mut self) {
         let rows = OpaquePtr::from_opaque(self.rows);
         let iter = OpaquePtr::from_opaque(self.iter);
         unsafe {
             iter.free();
             rows.free();
+        }
+    }
+}
+
+pub struct EagerQueryResult {
+    /// Handle to the pg rows, so that the items are valid until this query result
+    /// is dropped.
+    _rows: Rows,
+
+    /// The number of rows contained in this QueryResult
+    len: usize,
+
+    /// The number of columns contained in each row
+    stride: usize,
+
+    /// The row storage container: items are stored inline in row-major format,
+    /// and traversed:
+    /// - row by row: the row_idx is >= 0 and < len
+    /// - column by column: the col_idx is <= 0 and < stride
+    items: Vec<RowItem>,
+}
+
+impl QueryResult for EagerQueryResult {
+    fn from_rows(rows: Rows) -> Self {
+        let len = rows.len();
+
+        let columns = rows.columns();
+        let stride = columns.len();
+
+        // store all items inline
+        let mut items = Vec::with_capacity(len * stride);
+        for row in rows.iter() {
+            for col_idx in 0..stride {
+                let typename = columns[col_idx].type_().name();
+                let item = match row.get_bytes(col_idx) {
+                    Some(data) => RowItem {
+                        type_name: Buffer::from_str(typename),
+                        value: Buffer::from_bytes(data),
+                    },
+                    None => RowItem::empty(),
+                };
+                items.push(item);
+            }
+        }
+
+        Self {
+            _rows: rows,
+            len,
+            items,
+            stride,
         }
     }
 }
@@ -161,15 +217,49 @@ pub unsafe extern "C" fn query_exec(query: *mut ffi::Query) -> FFIResult<u8> {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn query_exec_result(query: *mut ffi::Query) -> FFIResult<ffi::QueryResult> {
+pub unsafe extern "C" fn query_exec_result(
+    query: *mut ffi::Query,
+) -> FFIResult<ffi::IteratedQueryResult> {
     let query = OpaquePtr::from_opaque(query);
-    let result = query.execute_with_result();
+    let result: Result<IteratedQueryResult, _> = query.execute_with_result();
     query.free();
     FFIResult::from_result(result)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn result_close(result: *mut ffi::QueryResult) {
+pub unsafe extern "C" fn query_exec_result_eager(
+    query: *mut ffi::Query,
+) -> FFIResult<ffi::EagerQueryResult> {
+    let query = OpaquePtr::from_opaque(query);
+    let result: Result<EagerQueryResult, _> = query.execute_with_result();
+    query.free();
+    FFIResult::from_result(result)
+}
+
+/// Returns a view into the `RowItem`s of the query results.
+/// Does not give ownership to the FFI of this data, which will be
+/// dropped at the same time as the `QueryResult` itself, by `result_close`.
+#[no_mangle]
+pub extern "C" fn eager_result_get_items(
+    result: *mut ffi::EagerQueryResult,
+) -> RowMajor2DArray<RowItem> {
+    let result = OpaquePtr::from_opaque(result);
+
+    let ptr = result.items.as_ptr();
+    let len = result.len;
+    let stride = result.stride;
+
+    RowMajor2DArray { ptr, len, stride }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn result_close(result: *mut ffi::IteratedQueryResult) {
+    let result = OpaquePtr::from_opaque(result);
+    result.free();
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn eager_result_close(result: *mut ffi::EagerQueryResult) {
     let result = OpaquePtr::from_opaque(result);
     result.free();
 }

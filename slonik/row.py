@@ -17,6 +17,17 @@ def get_deserializer(fmt):
     return unpack
 
 
+def deserialize_item(typename, value):
+    if typename is None:
+        return
+
+    deserializer = Row.deserializers.get(typename)
+    if deserializer is not None:
+        value = deserializer(value)
+
+    return value
+
+
 class _Row(rust.RustObject):
     def len(self):
         return self._methodcall(lib.row_len)

@@ -20,7 +20,7 @@ impl RowItem {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn next_row(result: *mut ffi::QueryResult) -> *const ffi::Row {
+pub unsafe extern "C" fn next_row(result: *mut ffi::IteratedQueryResult) -> *const ffi::Row {
     let result = OpaquePtr::from_opaque(result);
     let mut iter = OpaquePtr::from_opaque(result.iter);
     match iter.next() {

@@ -82,6 +82,10 @@ class Connection:
         query = self._get_query(sql, args)
         yield from query.execute_result()
 
+    def query_eager(self, sql: str, *args) -> Iterable[Tuple[Any]]:
+        query = self._get_query(sql, args)
+        yield from query.execute_result_eager()
+
     def get_one(self, sql: str, *args) -> Tuple[Any]:
         return next(self.query(sql, *args))
 

@@ -20,9 +20,14 @@ impl<'a> OpaqueTarget<'a> for Query {
     type Target = query::Query<'a>;
 }
 
-pub struct QueryResult;
-impl OpaqueTarget<'_> for QueryResult {
-    type Target = query::QueryResult;
+pub struct IteratedQueryResult;
+impl OpaqueTarget<'_> for IteratedQueryResult {
+    type Target = query::IteratedQueryResult;
+}
+
+pub struct EagerQueryResult;
+impl OpaqueTarget<'_> for EagerQueryResult {
+    type Target = query::EagerQueryResult;
 }
 
 pub struct Rows;
@@ -38,4 +43,18 @@ impl<'a> OpaqueTarget<'a> for RowsIterator {
 pub struct Row;
 impl<'a> OpaqueTarget<'a> for Row {
     type Target = postgres::rows::Row<'a>;
+}
+
+/// An immutable 2D array stored in a row-major 1D array:
+/// `len` rows, each of containing `stride` elements.
+#[repr(C)]
+pub struct RowMajor2DArray<T> {
+    /// Pointer to the first element of the array
+    pub ptr: *const T,
+
+    /// Number of rows in the array
+    pub len: usize,
+
+    /// Number of elements per row
+    pub stride: usize,
 }

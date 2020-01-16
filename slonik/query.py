@@ -6,6 +6,8 @@ from slonik._native import lib
 
 from .result import _Result
 from .result import Result
+from .result import _EagerResult
+from .result import EagerResult
 
 
 def get_serializer(typename, fmt):
@@ -29,6 +31,10 @@ class _Query(rust.RustObject):
     def execute_result(self):
         result = self._methodcall(lib.query_exec_result)
         return _Result._from_objptr(result)
+    
+    def execute_result_eager(self):
+        result = self._methodcall(lib.query_exec_result_eager)
+        return _EagerResult._from_objptr(result)
 
     # TODO: Add a close method called if Query is cancelled (or called everytime?)
 
@@ -61,3 +67,7 @@ class Query:
     def execute_result(self):
         with Result(self._query.execute_result()) as result:
             yield from result
+    
+    def execute_result_eager(self):
+        with EagerResult(self._query.execute_result_eager()) as result:
+            yield from result.rows()
