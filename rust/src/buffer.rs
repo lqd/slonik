@@ -16,15 +16,18 @@ impl Buffer {
             bytes: ptr::null(),
         }
     }
+
     pub fn from_bytes(data: &[u8]) -> Self {
         Self {
             size: data.len(),
             bytes: data.as_ptr(),
         }
     }
+
     pub fn from_str(data: &str) -> Self {
         Self::from_bytes(data.as_bytes())
     }
+
     pub unsafe fn to_str(&self) -> &str {
         str::from_utf8_unchecked(slice::from_raw_parts(self.bytes as *const _, self.size))
     }

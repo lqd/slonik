@@ -15,9 +15,11 @@ impl<T> FFIResult<T> {
             data: OpaquePtr::new(obj).opaque(),
         }
     }
+
     pub fn from_obj<O>(obj: O) -> Self {
         Self::new(0, obj)
     }
+
     pub fn from_error<E: StdError>(error: E) -> Self {
         let error = Error {
             code: 1,
@@ -25,6 +27,7 @@ impl<T> FFIResult<T> {
         };
         Self::new(error.code, error)
     }
+
     pub fn from_result<O, E: StdError>(result: Result<O, E>) -> Self {
         match result {
             Ok(o) => Self::from_obj(o),

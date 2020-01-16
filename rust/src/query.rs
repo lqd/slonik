@@ -54,6 +54,7 @@ pub struct TypedQueryParam<T: ParamType + fmt::Debug> {
     pub value: Buffer,
     _marker: PhantomData<T>,
 }
+
 impl<T: ParamType + fmt::Debug> TypedQueryParam<T> {
     pub fn new(value: Buffer) -> Self {
         Self {
@@ -62,6 +63,7 @@ impl<T: ParamType + fmt::Debug> TypedQueryParam<T> {
         }
     }
 }
+
 impl<T: ParamType + fmt::Debug> pgtypes::ToSql for TypedQueryParam<T> {
     fn to_sql(
         &self,
@@ -116,6 +118,7 @@ impl QueryResult {
         Self { rows, iter }
     }
 }
+
 impl Drop for QueryResult {
     fn drop(&mut self) {
         let rows = OpaquePtr::from_opaque(self.rows);
