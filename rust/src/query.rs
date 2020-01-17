@@ -209,7 +209,7 @@ pub unsafe extern "C" fn query_param(query: *mut ffi::Query, param: QueryParam) 
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn query_exec(query: *mut ffi::Query) -> FFIResult<u8> {
+pub unsafe extern "C" fn query_exec(query: *mut ffi::Query) -> FFIResult<u64> {
     let query = OpaquePtr::from_opaque(query);
     let result = query.execute();
     query.free();
