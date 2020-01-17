@@ -1,6 +1,6 @@
-use buffer::Buffer;
-use ffi;
-use opaque::OpaquePtr;
+use crate::buffer::Buffer;
+use crate::ffi;
+use crate::opaque::OpaquePtr;
 
 #[repr(C)]
 #[derive(Copy, Clone)]

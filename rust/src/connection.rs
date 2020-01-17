@@ -2,10 +2,11 @@ use std::os::raw::c_char;
 use std::slice;
 use std::str;
 
-use ffi;
-use opaque::OpaquePtr;
+use crate::ffi;
+use crate::opaque::OpaquePtr;
+use crate::result::FFIResult;
+
 pub use postgres::{Connection, TlsMode};
-use result::FFIResult;
 
 #[no_mangle]
 pub unsafe extern "C" fn connect(dsn: *const c_char, len: usize) -> FFIResult<ffi::Connection> {

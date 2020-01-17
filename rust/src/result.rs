@@ -1,5 +1,5 @@
-use error::Error;
-use opaque::OpaquePtr;
+use crate::error::Error;
+use crate::opaque::OpaquePtr;
 use std::error::Error as StdError;
 
 #[repr(C)]

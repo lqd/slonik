@@ -1,9 +1,9 @@
 //! FFI-related opaque pointer types
 
-use connection;
-use error;
-use opaque::OpaqueTarget;
-use query;
+use crate::connection;
+use crate::error;
+use crate::opaque::OpaqueTarget;
+use crate::query;
 
 pub struct Connection;
 impl OpaqueTarget<'_> for Connection {

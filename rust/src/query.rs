@@ -7,12 +7,12 @@ use std::os::raw::c_char;
 use std::slice;
 use std::str;
 
-use buffer::Buffer;
-use connection::Connection;
-use ffi::{self, RowMajor2DArray};
-use opaque::OpaquePtr;
-use result::FFIResult;
-use row::RowItem;
+use crate::buffer::Buffer;
+use crate::connection::Connection;
+use crate::ffi::{self, RowMajor2DArray};
+use crate::opaque::OpaquePtr;
+use crate::result::FFIResult;
+use crate::row::RowItem;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]

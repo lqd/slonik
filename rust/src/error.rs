@@ -1,6 +1,6 @@
-use buffer::Buffer;
-use ffi;
-use opaque::OpaquePtr;
+use crate::buffer::Buffer;
+use crate::ffi;
+use crate::opaque::OpaquePtr;
 
 pub struct Error {
     pub code: u8,
